@@ -197,3 +197,12 @@ This application is a graphical frontend that would not be possible without the 
 -   **[NxNandManager](https://github.com/eliboa/NxNandManager)** by eliboa
 -   **[OSFMount](https://www.osforensics.com/tools/mount-disk-images.html)** by PassMark Software
 -   **[7-Zip](https://www.7-zip.org/)** by Igor Pavlov
+
+
+### Support My Work
+
+If you find this project useful, please consider supporting me by buying me a coffee!
+
+<a href="https://www.buymeacoffee.com/sthetixofficial">
+  <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=sthetixofficial&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" alt="Buy Me A Coffee">
+</a>
