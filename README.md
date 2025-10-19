@@ -203,6 +203,6 @@ This application is a graphical frontend that would not be possible without the 
 
 If you find this project useful, please consider supporting me by buying me a coffee!
 
-<a href="https://www.buymeacoffee.com/sthetixofficial">
-  <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=sthetixofficial&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" alt="Buy Me A Coffee">
+<a href="https://www.buymeacoffee.com/sthetixofficial" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
 </a>
