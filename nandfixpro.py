@@ -737,7 +737,7 @@ class CustomDialog(tk.Toplevel):
 class SwitchGuiApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.version = "2.0.1"
+        self.version = "2.0.2"
         self.title(f"NAND Fix Pro v{self.version}")
         self.geometry("650x700") # Changed height for a better fit
         self.resizable(False, False)
@@ -2497,12 +2497,13 @@ class SwitchGuiApp(tk.Tk):
     
     def _raw_copy_nand_to_emmc(self, source_nand, target_drive):
         """Raw copy donor NAND image to target eMMC using optimized partial write of 4GB."""
+        target_fd = None
         try:
             self._log(f"--- Opening source NAND image: {source_nand}")
             # --- MODIFIED FOR V1.0.2: Changed to 4GB ---
             copy_size = 4 * (1024**3)
             self._log(f"--- OPTIMIZATION: Writing only first 4GB (covers all essential partitions)")
-            
+
             self._log(f"--- Opening target drive: {target_drive}")
             try:
                 target_fd = os.open(target_drive, os.O_WRONLY | os.O_BINARY)
@@ -2524,7 +2525,12 @@ class SwitchGuiApp(tk.Tk):
                             self._log("--- WARNING: Source file ended before reaching target copy size.")
                             break
 
-                        bytes_copied += os.write(target_fd, chunk)
+                        try:
+                            written = os.write(target_fd, chunk)
+                            bytes_copied += written
+                        except OSError as write_error:
+                            self._log(f"ERROR: Write operation failed at {bytes_copied / (1024**3):.2f} GB: {write_error}")
+                            raise
 
                         # --- MODIFIED FOR V1.0.2: Progress Bar ---
                         percent = int((bytes_copied / copy_size) * 100)
@@ -2536,10 +2542,19 @@ class SwitchGuiApp(tk.Tk):
                         self._update_progress(f"Writing to eMMC: [{bar}] {percent}% ({progress_gb:.2f}/{total_gb:.2f} GB)")
 
             finally:
-                # Always close the file descriptor
-                os.fsync(target_fd)
-                os.close(target_fd)
-                self._log("--- Target drive flushed and closed.")
+                # Always close the file descriptor safely
+                if target_fd is not None:
+                    try:
+                        self._log("--- Flushing data to target drive...")
+                        os.fsync(target_fd)
+                    except OSError as fsync_error:
+                        self._log(f"WARNING: fsync failed (this may be normal on some systems): {fsync_error}")
+
+                    try:
+                        os.close(target_fd)
+                        self._log("--- Target drive closed.")
+                    except OSError as close_error:
+                        self._log(f"WARNING: Failed to close target drive cleanly: {close_error}")
 
             self._log(f"--- SUCCESS: Copied {bytes_copied / (1024**3):.2f} GB to target eMMC")
             self._log(f"--- All essential partitions written. USER partition is blank and will be initialized by Switch.")
@@ -2547,17 +2562,25 @@ class SwitchGuiApp(tk.Tk):
 
         except PermissionError:
             self._log("ERROR: Permission denied. Please ensure the script is running as an Administrator.")
-            CustomDialog(self, title="Permission Error", 
+            CustomDialog(self, title="Permission Error",
                             message="Permission denied when trying to write to the drive. Please ensure the script is running with Administrator privileges.")
             return False
         except OSError as e:
-            if e.errno == 22:  # Invalid argument
+            if e.errno == 9:  # Bad file descriptor
+                self._log(f"ERROR: Bad file descriptor error. This may be due to:")
+                self._log("1. USB connection was interrupted during write")
+                self._log("2. Drive was disconnected or became unavailable")
+                self._log("3. USB controller/driver compatibility issue")
+                self._log("4. Windows blocked the operation")
+                CustomDialog(self, title="USB Write Error",
+                                message=f"Lost connection to the eMMC during write.\n\nPossible solutions:\n• Try a different USB port (preferably USB 2.0)\n• Use a different USB cable\n• Disable USB selective suspend in Windows power settings\n• Try on a different PC\n• Ensure Switch is in proper RCM mode with Hekate")
+            elif e.errno == 22:  # Invalid argument
                 self._log(f"ERROR: Cannot access physical drive {target_drive}. This may be due to:")
                 self._log("1. Drive is mounted/in use by another process")
                 self._log("2. Drive access is blocked by antivirus software")
                 self._log("3. Insufficient permissions")
                 self._log("4. Device not properly connected")
-                CustomDialog(self, title="Drive Access Error", 
+                CustomDialog(self, title="Drive Access Error",
                                 message=f"Cannot access the physical drive.\n\nPossible solutions:\n• Ensure no other programs are using the drive\n• Temporarily disable antivirus\n• Run as Administrator\n• Try disconnecting and reconnecting the Switch")
             else:
                 self._log(f"ERROR: OS error occurred: {e}")
@@ -2566,7 +2589,7 @@ class SwitchGuiApp(tk.Tk):
             self._log(f"ERROR: A critical error occurred during the raw copy: {e}")
             import traceback
             self._log(traceback.format_exc())
-            CustomDialog(self, title="Write Error", 
+            CustomDialog(self, title="Write Error",
                             message=f"A critical error occurred while writing to the eMMC:\n\n{e}")
             return False
 
