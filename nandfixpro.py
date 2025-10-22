@@ -733,11 +733,96 @@ class CustomDialog(tk.Toplevel):
         self.result = False
         self.destroy()
 
+class ConsoleTypeDialog(tk.Toplevel):
+    """Dialog for selecting console type override"""
+    def __init__(self, parent, current_selection=""):
+        super().__init__(parent)
+        self.transient(parent)
+        self.title("Console Type Override")
+        self.parent = parent
+        self.result = None  # Will store selected console type or None if cancelled
+        self.resizable(False, False)
+
+        # Apply modern theme from parent
+        self.configure(bg=parent.style.lookup('TFrame', 'background'))
+
+        main_frame = ttk.Frame(self, padding="20 20 20 20", style="Dark.TFrame")
+        main_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Warning message
+        warning_text = (
+            "⚠️ This feature should ONLY be used when fixing a console\n"
+            "with mismatched firmware files (e.g., boot files generated\n"
+            "for a different console variant).\n\n"
+            "Examples:\n"
+            "• Console has Erista boot files but is actually Mariko\n"
+            "• Console has Mariko boot files but is actually Erista\n"
+            "• Error: \"Erista pkg1 on Mariko\" or \"Wrong pkg1 flashed\"\n\n"
+            "If you're unsure, cancel and use automatic detection.\n"
+        )
+        warning_label = ttk.Label(main_frame, text=warning_text,
+                                 wraplength=450, justify=tk.LEFT, style="Dark.TLabel")
+        warning_label.pack(padx=10, pady=(10, 20))
+
+        # Dropdown frame
+        dropdown_frame = ttk.Frame(main_frame, style="Dark.TFrame")
+        dropdown_frame.pack(pady=(0, 20))
+
+        ttk.Label(dropdown_frame, text="Select your console type:",
+                 style="Dark.TLabel").pack(side=tk.LEFT, padx=(0, 10))
+
+        self.console_type_var = tk.StringVar(value=current_selection if current_selection else "Erista (V1 Patched/Unpatched)")
+        console_dropdown = ttk.Combobox(
+            dropdown_frame,
+            textvariable=self.console_type_var,
+            values=["Erista (V1 Patched/Unpatched)", "Mariko (V2, Lite, OLED)"],
+            state="readonly",
+            width=30
+        )
+        console_dropdown.pack(side=tk.LEFT)
+
+        # Buttons
+        button_frame = ttk.Frame(main_frame, style="Dark.TFrame")
+        button_frame.pack(pady=(10, 0))
+
+        ok_button = ttk.Button(button_frame, text="OK", command=self.on_ok,
+                              style="Accent.TButton")
+        ok_button.pack(side=tk.LEFT, padx=10, ipadx=20, ipady=2)
+
+        cancel_button = ttk.Button(button_frame, text="Cancel", command=self.on_cancel,
+                                   style="TButton")
+        cancel_button.pack(side=tk.LEFT, padx=10, ipadx=20, ipady=2)
+
+        self.bind("<Return>", lambda _: self.on_ok())
+        self.bind("<Escape>", lambda _: self.on_cancel())
+
+        self.center_window()
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self.on_cancel)
+        self.wait_window(self)
+
+    def center_window(self):
+        self.update_idletasks()
+        parent_x, parent_y = self.parent.winfo_x(), self.parent.winfo_y()
+        parent_w, parent_h = self.parent.winfo_width(), self.parent.winfo_height()
+        dialog_w, dialog_h = self.winfo_width(), self.winfo_height()
+        x = parent_x + (parent_w // 2) - (dialog_w // 2)
+        y = parent_y + (parent_h // 2) - (dialog_h // 2)
+        self.geometry(f"+{x}+{y}")
+
+    def on_ok(self):
+        self.result = self.console_type_var.get()
+        self.destroy()
+
+    def on_cancel(self):
+        self.result = None
+        self.destroy()
+
 # --- MAIN APPLICATION CLASS ---
 class SwitchGuiApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.version = "2.0.2"
+        self.version = "2.0.3"
         self.title(f"NAND Fix Pro v{self.version}")
         self.geometry("650x700") # Changed height for a better fit
         self.resizable(False, False)
@@ -772,6 +857,10 @@ class SwitchGuiApp(tk.Tk):
         self.copy_boot_buttons = []
         self.advanced_user_button = None
         self.donor_prodinfo_from_sd = False
+
+        # Console type override variables
+        self.override_console_type = tk.BooleanVar(value=False)
+        self.manual_console_type = tk.StringVar(value="")
 
         # --- INITIALIZATION ---
         self._setup_styles()
@@ -1544,12 +1633,16 @@ class SwitchGuiApp(tk.Tk):
         # 4. Reset the donor PRODINFO flag
         self.donor_prodinfo_from_sd = False
 
-        # 5. Re-enable PRODINFO browse button and disable menu
+        # 5. Reset console type override checkbox
+        self.override_console_type.set(False)
+        self.manual_console_type.set("")
 
-        # 6. Reset the last output directory variable
+        # 6. Re-enable PRODINFO browse button and disable menu
+
+        # 7. Reset the last output directory variable
         self.last_output_dir = None
 
-        # 7. Clear the log and update the UI
+        # 8. Clear the log and update the UI
         self._clear_log()
         self._log("--- Application has been reset. Ready for a new operation. ---")
         self._validate_paths_and_update_buttons()               
@@ -1647,6 +1740,16 @@ class SwitchGuiApp(tk.Tk):
         advanced_frame_placeholder = ttk.Frame(parent_frame)
         advanced_frame_placeholder.grid(row=3, column=0, columnspan=3, pady=20)
 
+        # Add console type override checkbox
+        override_checkbox = ttk.Checkbutton(
+            advanced_frame_placeholder,
+            text="Override Console Type Detection",
+            variable=self.override_console_type,
+            command=self._on_override_toggle,
+            style="Dark.TCheckbutton"
+        )
+        override_checkbox.pack(anchor="center")
+
         # Row 4: The main button area, now in a fixed position.
         self._create_standard_button_area(parent_frame, "Level 1", 
                                           lambda: self._start_threaded_process("Level 1"), 
@@ -1675,6 +1778,16 @@ class SwitchGuiApp(tk.Tk):
                                      command=self._start_user_fix_threaded, style="Disabled.TButton", state="disabled")
         advanced_button.pack(ipady=5, ipadx=15)
         self.advanced_user_button = advanced_button
+
+        # Add console type override checkbox below the advanced button
+        override_checkbox = ttk.Checkbutton(
+            advanced_frame,
+            text="Override Console Type Detection",
+            variable=self.override_console_type,
+            command=self._on_override_toggle,
+            style="Dark.TCheckbutton"
+        )
+        override_checkbox.pack(anchor="center", pady=(15, 0))
 
         # Row 4: The main button area, in the same fixed position.
         self._create_standard_button_area(parent_frame, "Level 2", 
@@ -2175,6 +2288,25 @@ class SwitchGuiApp(tk.Tk):
         # Re-enable PRODINFO menu if appropriate
         if self._is_path_valid("prodinfo"):
             self._enable_prodinfo_menu()
+
+    def _on_override_toggle(self):
+        """Handle console type override checkbox toggle"""
+        if self.override_console_type.get():
+            # User is enabling override - show the dialog
+            dialog = ConsoleTypeDialog(self, self.manual_console_type.get())
+
+            if dialog.result:
+                # User clicked OK - save the selection
+                self.manual_console_type.set(dialog.result)
+                self._log(f"INFO: Console type override enabled - Using: {dialog.result}")
+            else:
+                # User clicked Cancel - uncheck the box and reset
+                self.override_console_type.set(False)
+                self.manual_console_type.set("")
+        else:
+            # User is disabling override - reset the selection
+            self.manual_console_type.set("")
+            self._log("INFO: Console type override disabled - Using automatic detection")
 
     def _on_closing(self):
         """Handle application closing - clean up temp directory and temporary files."""
@@ -2877,13 +3009,31 @@ class SwitchGuiApp(tk.Tk):
         self._log("SUCCESS: PRODINFO is valid and decrypted.")
 
         self._log(f"\n[STEP 2/8] Reading PRODINFO file...")
-        with open(prodinfo_path, 'rb') as f:
-            f.seek(0x3740)
-            model_bytes = f.read(4)
-            product_model_id = int.from_bytes(model_bytes, byteorder='little')
-        model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
-        detected_model = model_map.get(product_model_id, "Unknown Mariko")
-        self._log(f"SUCCESS: Detected model: {detected_model}")
+
+        # Check if console type override is enabled
+        if self.override_console_type.get() and self.manual_console_type.get():
+            # Use manual override
+            manual_selection = self.manual_console_type.get()
+            self._log(f"INFO: Using manual console type override: {manual_selection}")
+            detected_model = "Mariko" if "Mariko" in manual_selection else "Erista"
+
+            # Still read PRODINFO to show what was detected for reference
+            with open(prodinfo_path, 'rb') as f:
+                f.seek(0x3740)
+                model_bytes = f.read(4)
+                product_model_id = int.from_bytes(model_bytes, byteorder='little')
+            model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
+            auto_detected = model_map.get(product_model_id, "Unknown Mariko")
+            self._log(f"INFO: Auto-detected model from PRODINFO: {auto_detected} (ignored due to override)")
+        else:
+            # Use automatic detection
+            with open(prodinfo_path, 'rb') as f:
+                f.seek(0x3740)
+                model_bytes = f.read(4)
+                product_model_id = int.from_bytes(model_bytes, byteorder='little')
+            model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
+            detected_model = model_map.get(product_model_id, "Unknown Mariko")
+            self._log(f"SUCCESS: Detected model: {detected_model}")
 
         self._log(f"\n[STEP 3/8] Generating boot files...")
         emmchaccgen_out_dir = Path(temp_dir) / "emmchaccgen_out"
@@ -3052,12 +3202,29 @@ class SwitchGuiApp(tk.Tk):
                 return
 
         self._log(f"\n[STEP 2/7] Reading PRODINFO file...")
-        with open(prodinfo_path, 'rb') as f:
-            f.seek(0x3740)
-            product_model_id = int.from_bytes(f.read(4), byteorder='little')
-        model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
-        detected_model = model_map.get(product_model_id, "Unknown Mariko")
-        self._log(f"SUCCESS: Detected model: {detected_model}")
+
+        # Check if console type override is enabled
+        if self.override_console_type.get() and self.manual_console_type.get():
+            # Use manual override
+            manual_selection = self.manual_console_type.get()
+            self._log(f"INFO: Using manual console type override: {manual_selection}")
+            detected_model = "Mariko" if "Mariko" in manual_selection else "Erista"
+
+            # Still read PRODINFO to show what was detected for reference
+            with open(prodinfo_path, 'rb') as f:
+                f.seek(0x3740)
+                product_model_id = int.from_bytes(f.read(4), byteorder='little')
+            model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
+            auto_detected = model_map.get(product_model_id, "Unknown Mariko")
+            self._log(f"INFO: Auto-detected model from PRODINFO: {auto_detected} (ignored due to override)")
+        else:
+            # Use automatic detection
+            with open(prodinfo_path, 'rb') as f:
+                f.seek(0x3740)
+                product_model_id = int.from_bytes(f.read(4), byteorder='little')
+            model_map = {1: "Erista", 3: "V2", 4: "Lite", 6: "OLED"}
+            detected_model = model_map.get(product_model_id, "Unknown Mariko")
+            self._log(f"SUCCESS: Detected model: {detected_model}")
 
         self._log(f"\n[STEP 3/7] Generating boot files...")
         emmchaccgen_out_dir = Path(temp_dir) / "emmchaccgen_out"
