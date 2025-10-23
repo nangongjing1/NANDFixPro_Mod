@@ -1,4 +1,4 @@
-# NAND Fix Pro v2.0.0 - Complete Usage Guide
+# NAND Fix Pro v2.0.3 - Complete Usage Guide
 
 ## Table of Contents
 1. Introduction & Safety
@@ -7,10 +7,11 @@
 4. The In-App Workflow
 5. Understanding the Repair Levels
 6. PRODINFO Editor
-7. Step-by-Step Procedures
-8. Troubleshooting
-9. FAQ
-10. Final Notes
+7. Settings & Configuration
+8. Step-by-Step Procedures
+9. Troubleshooting
+10. FAQ
+11. Final Notes
 
 ---
 
@@ -67,7 +68,7 @@ Do not proceed until you have both your prod.keys on the SD card and a full NAND
 ### Required Hardware
 - Modded Nintendo Switch
 - USB-C data transfer cable
-- Windows PC with minimum 60GB free disk space
+- Windows PC with minimum 60GB free disk space (automatically verified before processing)
 
 ---
 
@@ -75,9 +76,9 @@ Do not proceed until you have both your prod.keys on the SD card and a full NAND
 
 With the mandatory first steps completed, using the app is simple:
 
-1. Launch and Configure: Launch NANDFixPro.exe. The only path you need to set manually for Level 1 & 2 is your Firmware Folder.
+1. Launch and Configure: Launch NANDFixPro.exe. The only path you need to set manually for Level 1 & 2 is your Firmware Folder. (Optional: Configure a custom temp directory in Settings if needed)
 2. Get Keys: Mount your SD card in Hekate. Click "Get Keys from SD".
-3. Start Process: Connect the eMMC in Hekate (Read-Only OFF). Click the "Start Process" button for your chosen level.
+3. Start Process: Connect the eMMC in Hekate (Read-Only OFF). Click the "Start Process" button for your chosen level. (The tool automatically verifies 60GB free space before starting)
 4. Copy BOOT: After the repair, mount the SD card again. Click "Copy BOOT to SD".
 5. Restore in Hekate: In Hekate, use Tools → Restore eMMC to flash the eMMC BOOT0 & BOOT1.
 
@@ -168,7 +169,79 @@ Recommended order:
 
 ---
 
-## 7. Step-by-Step Procedures
+## 7. Settings & Configuration
+
+### Accessing Settings
+The Settings menu is located in the top menu bar of the application. Click "Settings" to access configuration options for customizing the tool's behavior.
+
+### Available Settings
+
+#### Custom Temporary Directory
+By default, NAND Fix Pro uses your system's default temporary directory (typically C:\Users\YourName\AppData\Local\Temp\) for all processing operations. You can change this to any location with sufficient free space.
+
+**How to configure:**
+1. Click "Settings" in the menu bar
+2. Select "Set Temporary Directory..."
+3. Browse to and select your preferred directory
+4. The tool will now use this location for all temporary files during processing
+
+**When to use a custom directory:**
+- Your system drive (C:) has limited space
+- You have a faster secondary drive (SSD) that can speed up processing
+- You want to keep temporary files organized in a specific location
+- You need to process on a drive with more than 60GB available
+
+**Important notes:**
+- The selected directory must have at least 60GB of free space
+- The tool automatically checks available space before starting any process
+- Temporary files are automatically cleaned up after successful operations
+- All temp folders follow the naming pattern: `switch_gui_*` with timestamps
+
+#### Other Settings
+The Settings menu also allows you to manually configure paths if needed:
+- **7-Zip (7z.exe)**: Path to the 7-Zip extraction tool
+- **EmmcHaccGen.exe**: Path to the EmmcHaccGen tool
+- **NxNandManager.exe**: Path to the NxNandManager tool
+- **OSFMount.com**: Path to the OSFMount tool
+- **Partitions Folder (NAND)**: Path to the folder containing donor partition archives
+
+*Note: These paths are automatically detected from the lib folder and typically don't require manual configuration.*
+
+### Disk Space Management
+
+#### Automatic Space Verification
+Before starting any Level 1, Level 2, or Level 3 process, NAND Fix Pro automatically:
+1. Checks the available free space on your temp directory (or system default)
+2. Requires a minimum of 60GB free space
+3. Displays an error dialog if insufficient space is detected
+4. Prevents the process from starting until space is available
+
+#### What happens if space is insufficient?
+You'll see a dialog showing:
+- The drive being checked
+- Space required (60GB)
+- Space currently available
+- Suggestion to free up space or select a different temp directory
+
+**Solutions:**
+- Free up space on the current drive
+- Change to a different drive using Settings → Set Temporary Directory
+- Delete old temporary folders manually if previous processes were interrupted
+
+#### Automatic Cleanup
+NAND Fix Pro manages temporary files intelligently:
+- Temporary directories are created with unique timestamps for each operation
+- Files are automatically deleted after successfully copying BOOT files to SD
+- If a process fails, temp files are cleaned up automatically
+- On application exit, any remaining temp directories are removed
+- The "Reset App" button in Help menu also clears all temp folders
+
+### Settings Persistence
+All settings (including custom temp directory) are saved to a `config.json` file and persist between application sessions.
+
+---
+
+## 8. Step-by-Step Procedures
 
 ### For All Levels - The Basic Process
 
@@ -207,7 +280,7 @@ Recommended order:
 
 ---
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### Common Issues and Solutions
 
@@ -218,6 +291,10 @@ Recommended order:
 "Backup Folder Not Found": You did not complete Step 2. You must create a full NAND backup in Hekate to create the required folder structure.
 
 "Permission denied": The app should run as admin. Close any file explorer windows browsing the Switch eMMC or SD card.
+
+"Insufficient Disk Space": The tool requires 60GB free space. Either free up space on your current drive or go to Settings → Set Temporary Directory to choose a different drive with more space.
+
+"Cannot access physical drive": This may be due to antivirus interference, USB connection issues, or Windows blocking the operation. Try a different USB port (preferably USB 2.0), temporarily disable antivirus, or ensure the Switch is properly in RCM mode with Hekate.
 
 Save the Log: If you encounter an error, use the "Save Log" button. This file is critical for getting support.
 
@@ -241,7 +318,7 @@ PRODINFO Editor menu is grayed out
 
 ---
 
-## 9. FAQ
+## 10. FAQ
 
 ### Frequently Asked Questions
 
@@ -260,9 +337,18 @@ A: No, editing is optional. The process will work with any valid donor PRODINFO.
 Q: Will changing the serial number cause issues?
 A: The serial is cosmetic in custom firmware. Your console will work fine, but it won't match the official serial database.
 
+Q: Can I change where temporary files are stored?
+A: Yes! Go to Settings → Set Temporary Directory and select any folder with at least 60GB of free space. This is useful if your system drive is running low on space.
+
+Q: What happens if I run out of disk space during processing?
+A: The tool checks for 60GB of free space before starting any process. If space runs out during processing, the operation will fail, but the tool will automatically clean up partial temporary files.
+
+Q: Where are temporary files stored by default?
+A: By default, they're stored in your system's temp directory (typically C:\Users\YourName\AppData\Local\Temp\). All temp folders created by NAND Fix Pro follow the pattern `switch_gui_*` with timestamps.
+
 ---
 
-## 10. Final Notes
+## 11. Final Notes
 
 ### Important Reminders
 
@@ -280,5 +366,20 @@ Remember that Level 3 repairs permanently affect your console's ability to use o
 - Double-check all file paths before beginning
 - Keep your firmware package up to date
 - When using the PRODINFO Editor, always verify integrity after making changes
+- If your system drive is low on space, configure a custom temp directory before starting
+- The tool will automatically verify you have 60GB free before processing begins
+
+### What's New in v2.0.3
+
+**Enhanced Storage Management:**
+- Custom Temporary Directory: Choose where temporary files are stored during processing
+- Automatic Disk Space Verification: 60GB minimum space check before any process begins
+- Improved Cleanup: Better automatic cleanup of temporary files and folders
+- Centralized Settings Menu: Easy access to all configuration options
+
+**Reliability Improvements:**
+- Better error handling for disk space issues
+- Automatic cleanup on application exit
+- Enhanced logging for troubleshooting storage-related problems
 
 This tool has helped countless users recover their consoles when used properly. Take your time, follow the steps carefully, and don't skip the mandatory preparation steps.
