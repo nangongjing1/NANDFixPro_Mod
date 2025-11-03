@@ -1,12 +1,12 @@
 # NAND Fix Pro
 
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/sthetix/NANDFixPro/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/nangongjing1/NANDFixPro_Mod/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D4.svg)](https://www.microsoft.com/windows/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sthetix/NANDFixPro/main/images/title.png" alt="Title Image" width="75%">
+  <img src="images\title.jpg" alt="Title Image" width="75%">
 </p>
 
 A comprehensive GUI tool for Nintendo Switch NAND repair, designed to simplify complex recovery processes into a user-friendly, step-by-step interface.

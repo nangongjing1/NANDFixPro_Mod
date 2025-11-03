@@ -1,3 +1,5 @@
+# pyinstaller --onefile --windowed --icon=icon.ico nandfixpro.py
+
 import sys
 import traceback
 import datetime
@@ -27,7 +29,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
         # Create a temporary root to show the message box if the main app failed
         root = tk.Tk()
         root.withdraw()
-        messagebox.showerror("Unhandled Exception", error_message)
+        messagebox.showerror("未处理的异常", error_message)
         root.destroy()
     except Exception as e:
         print(f"Could not show messagebox: {e}")
@@ -699,14 +701,14 @@ class CustomDialog(tk.Toplevel):
         button_frame.pack(pady=(20, 0))
 
         if buttons == "yesno":
-            yes_button = ttk.Button(button_frame, text="Yes", command=self.on_yes, style="Accent.TButton")
+            yes_button = ttk.Button(button_frame, text="是", command=self.on_yes, style="Accent.TButton")
             yes_button.pack(side=tk.LEFT, padx=10, ipadx=10, ipady=2)
-            no_button = ttk.Button(button_frame, text="No", command=self.on_no, style="TButton")
+            no_button = ttk.Button(button_frame, text="否", command=self.on_no, style="TButton")
             no_button.pack(side=tk.LEFT, padx=10, ipadx=10, ipady=2)
             self.bind("<Return>", lambda e: self.on_yes())
             self.bind("<Escape>", lambda e: self.on_no())
         else: # Default is "ok"
-            ok_button = ttk.Button(button_frame, text="OK", command=self.on_no, style="Accent.TButton")
+            ok_button = ttk.Button(button_frame, text="确定", command=self.on_no, style="Accent.TButton")
             ok_button.pack(side=tk.LEFT, padx=10, ipadx=10, ipady=2)
             self.bind("<Return>", lambda e: self.on_no())
             self.bind("<Escape>", lambda e: self.on_no())
@@ -738,7 +740,7 @@ class ConsoleTypeDialog(tk.Toplevel):
     def __init__(self, parent, current_selection=""):
         super().__init__(parent)
         self.transient(parent)
-        self.title("Console Type Override")
+        self.title("Switch型号")
         self.parent = parent
         self.result = None  # Will store selected console type or None if cancelled
         self.resizable(False, False)
@@ -751,14 +753,13 @@ class ConsoleTypeDialog(tk.Toplevel):
 
         # Warning message
         warning_text = (
-            "⚠️ This feature should ONLY be used when fixing a console\n"
-            "with mismatched firmware files (e.g., boot files generated\n"
-            "for a different console variant).\n\n"
-            "Examples:\n"
-            "• Console has Erista boot files but is actually Mariko\n"
-            "• Console has Mariko boot files but is actually Erista\n"
-            "• Error: \"Erista pkg1 on Mariko\" or \"Wrong pkg1 flashed\"\n\n"
-            "If you're unsure, cancel and use automatic detection.\n"
+            "⚠️ 此功能仅应在修复具有不匹配固件文件的Switch时使用\n"
+            "(例如，为不同Switch变体生成的启动文件)\n\n"
+            "例子:\n"
+            "• Switch有Erista启动文件但实际上是Mariko\n"
+            "• Switch有Mariko启动文件但实际上是Erista\n"
+            "• 错误: \"Erista pkg1 on Mariko\" 或 \"Wrong pkg1 flashed\"\n\n"
+            "如果不确定，请取消并使用自动检测。\n"
         )
         warning_label = ttk.Label(main_frame, text=warning_text,
                                  wraplength=450, justify=tk.LEFT, style="Dark.TLabel")
@@ -768,14 +769,14 @@ class ConsoleTypeDialog(tk.Toplevel):
         dropdown_frame = ttk.Frame(main_frame, style="Dark.TFrame")
         dropdown_frame.pack(pady=(0, 20))
 
-        ttk.Label(dropdown_frame, text="Select your console type:",
+        ttk.Label(dropdown_frame, text="选择您的Switch型号:",
                  style="Dark.TLabel").pack(side=tk.LEFT, padx=(0, 10))
 
-        self.console_type_var = tk.StringVar(value=current_selection if current_selection else "Erista (V1 Patched/Unpatched)")
+        self.console_type_var = tk.StringVar(value=current_selection if current_selection else "Erista (V1 已修补/未修补)")
         console_dropdown = ttk.Combobox(
             dropdown_frame,
             textvariable=self.console_type_var,
-            values=["Erista (V1 Patched/Unpatched)", "Mariko (V2, Lite, OLED)"],
+            values=["Erista (V1 已修补/未修补)", "Mariko (V2, Lite, OLED)"],
             state="readonly",
             width=30
         )
@@ -785,11 +786,11 @@ class ConsoleTypeDialog(tk.Toplevel):
         button_frame = ttk.Frame(main_frame, style="Dark.TFrame")
         button_frame.pack(pady=(10, 0))
 
-        ok_button = ttk.Button(button_frame, text="OK", command=self.on_ok,
+        ok_button = ttk.Button(button_frame, text="确定", command=self.on_ok,
                               style="Accent.TButton")
         ok_button.pack(side=tk.LEFT, padx=10, ipadx=20, ipady=2)
 
-        cancel_button = ttk.Button(button_frame, text="Cancel", command=self.on_cancel,
+        cancel_button = ttk.Button(button_frame, text="取消", command=self.on_cancel,
                                    style="TButton")
         cancel_button.pack(side=tk.LEFT, padx=10, ipadx=20, ipady=2)
 
@@ -823,7 +824,7 @@ class SwitchGuiApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.version = "2.0.3"
-        self.title(f"NAND Fix Pro v{self.version}")
+        self.title(f"NAND Fix Pro v{self.version} 中文版")
         self.geometry("650x700") # Changed height for a better fit
         self.resizable(False, False)
         
@@ -877,26 +878,26 @@ class SwitchGuiApp(tk.Tk):
         button_frame = ttk.Frame(parent_frame)
 
         # Get Keys button (left)
-        get_keys_button = ttk.Button(button_frame, text="Get Keys from SD",
+        get_keys_button = ttk.Button(button_frame, text="从SD卡获取密钥",
                                      command=self._get_keys_from_sd, style="Active.TButton")
         get_keys_button.pack(side=tk.LEFT, padx=10, ipady=5, ipadx=15)
         self.get_keys_buttons.append(get_keys_button)
 
         # Main process button (center)
-        button = ttk.Button(button_frame, text=f"Start {process_name} Process",
+        button = ttk.Button(button_frame, text=f"开始{process_name}处理",
                             command=command, style="Disabled.TButton", state="disabled")
         button.pack(side=tk.LEFT, padx=10, ipady=5, ipadx=15)
         setattr(self, button_ref, button)
 
         # Copy BOOT files button (right)
-        copy_boot_button = ttk.Button(button_frame, text="Copy BOOT to SD",
+        copy_boot_button = ttk.Button(button_frame, text="复制BOOT到SD卡",
                                       command=self._copy_boot_files_to_sd, style="Disabled.TButton", state="disabled")
         copy_boot_button.pack(side=tk.LEFT, padx=10, ipady=5, ipadx=15)
         
-        # --- THIS IS THE FIX ---
-        # Add the newly created button to the list so it can be updated later
-        self.copy_boot_buttons.append(copy_boot_button)
-        # --- END OF FIX ---
+        # 确保按钮被添加到列表中，以便后续更新
+        if copy_boot_button not in self.copy_boot_buttons:
+            self.copy_boot_buttons.append(copy_boot_button)
+            self._log(f"DEBUG: Added copy BOOT button to tracking list")
         
         return button_frame
         
@@ -1230,10 +1231,10 @@ class SwitchGuiApp(tk.Tk):
             background=self.BG_LIGHT, foreground=self.FG_COLOR,
             activebackground=self.ACCENT_COLOR, activeforeground=self.FG_COLOR,
             relief="flat", borderwidth=0)
-        menubar.add_cascade(label="Help", menu=help_menu)
-        help_menu.add_command(label="Usage Guide", command=self._show_usage_guide_window)
+        menubar.add_cascade(label="帮助", menu=help_menu)
+        help_menu.add_command(label="使用指南", command=self._show_usage_guide_window)
         help_menu.add_separator()
-        help_menu.add_command(label="About NAND Fix Pro", command=self._show_about_window)
+        help_menu.add_command(label="关于 NAND Fix Pro", command=self._show_about_window)
 
         # --- STANDARD TTK.NOTEBOOK IMPLEMENTATION ---
         self.tab_control = ttk.Notebook(self, style="TNotebook")
@@ -1244,9 +1245,9 @@ class SwitchGuiApp(tk.Tk):
         self.tab_level3 = ttk.Frame(self.tab_control, padding="15")
         
         # Add tabs to notebook
-        self.tab_control.add(self.tab_level1, text='Level 1: System Restore')
-        self.tab_control.add(self.tab_level2, text='Level 2: Full Rebuild')
-        self.tab_control.add(self.tab_level3, text='Level 3: Complete Recovery')
+        self.tab_control.add(self.tab_level1, text='第1级: 系统恢复')
+        self.tab_control.add(self.tab_level2, text='第2级: 完全重建')
+        self.tab_control.add(self.tab_level3, text='第3级: 完整恢复')
         
         # Pack the notebook
         self.tab_control.pack(expand=1, fill="both", padx=15, pady=10)
@@ -1257,7 +1258,7 @@ class SwitchGuiApp(tk.Tk):
         self._setup_level3_tab(self.tab_level3)
         
         # --- LOG WIDGET SETUP ---
-        log_frame = ttk.LabelFrame(self, text="Log Output", padding="10")
+        log_frame = ttk.LabelFrame(self, text="日志输出", padding="10")
         log_frame.pack(padx=15, pady=(5, 15), fill="both", expand=True)
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
@@ -1273,13 +1274,13 @@ class SwitchGuiApp(tk.Tk):
         button_frame.grid(row=1, column=0, pady=(10, 0), sticky="e")
 
         # Reset App button
-        reset_button = ttk.Button(button_frame, text="Reset App", command=self._reset_application_state, style="TButton")
+        reset_button = ttk.Button(button_frame, text="重置应用", command=self._reset_application_state, style="TButton")
         reset_button.pack(side=tk.LEFT, padx=(0, 10))
 
-        clear_log_button = ttk.Button(button_frame, text="Clear Log", command=self._clear_log, style="TButton")
+        clear_log_button = ttk.Button(button_frame, text="清除日志", command=self._clear_log, style="TButton")
         clear_log_button.pack(side=tk.LEFT, padx=(0, 10))
 
-        save_log_button = ttk.Button(button_frame, text="Save Log", command=self._save_log, style="TButton")
+        save_log_button = ttk.Button(button_frame, text="保存日志", command=self._save_log, style="TButton")
         save_log_button.pack(side=tk.LEFT)
 
       
@@ -1333,12 +1334,12 @@ class SwitchGuiApp(tk.Tk):
             
             if free_gb < required_gb:
                 self._log(f"ERROR: Insufficient disk space on {temp_dir}. Need {required_gb}GB, have {free_gb:.1f}GB available")
-                CustomDialog(self, title="Insufficient Disk Space", 
-                            message=f"Not enough free space on the selected drive.\n\n" +
-                                    f"Drive: {temp_dir}\n" +
-                                    f"Required: {required_gb}GB\n" +
-                                    f"Available: {free_gb:.1f}GB\n\n" +
-                                    f"Please free up space or select a different temp directory in Settings.")
+                CustomDialog(self, title="磁盘空间不足", 
+                            message=f"所选驱动器上的可用空间不足。\n\n" +
+                                    f"驱动器: {temp_dir}\n" +
+                                    f"所需: {required_gb}GB\n" +
+                                    f"可用: {free_gb:.1f}GB\n\n" +
+                                    f"请释放空间或在设置中选择其它目录。")
                 return False
             
             self._log(f"--- Disk space check: {free_gb:.1f}GB available on {temp_dir}")
@@ -1447,24 +1448,34 @@ class SwitchGuiApp(tk.Tk):
                 else:
                     self.advanced_user_button.config(style="Disabled.TButton", state="disabled")
 
-            # Copy BOOT Buttons
+            # Copy BOOT Buttons - 增强更新逻辑，确保所有按钮都能正确更新
+            self._log(f"DEBUG: Updating {len(self.copy_boot_buttons)} copy BOOT buttons, state: {self.button_states['copy_boot']}")
             for button in self.copy_boot_buttons:
-                if self.button_states["copy_boot"] == "active":
-                    button.config(style="Active.TButton", state="normal")
-                elif self.button_states["copy_boot"] == "completed":
-                    button.config(style="Completed.TButton", state="disabled")
-                else:
-                    button.config(style="Disabled.TButton", state="disabled")
+                if button:
+                    if self.button_states["copy_boot"] == "active":
+                        button.config(style="Active.TButton", state="normal")
+                        self._log(f"DEBUG: Copy BOOT button activated")
+                    elif self.button_states["copy_boot"] == "completed":
+                        button.config(style="Completed.TButton", state="disabled")
+                        self._log(f"DEBUG: Copy BOOT button marked as completed")
+                    else:
+                        button.config(style="Disabled.TButton", state="disabled")
+                        self._log(f"DEBUG: Copy BOOT button disabled")
+                    # 强制更新界面以确保更改生效
+                    button.update_idletasks()
                     
         except Exception as e:
-            self._log(f"WARNING: Could not update button colors: {e}")    
+            self._log(f"WARNING: Could not update button colors: {e}")
+            import traceback
+            self._log(f"ERROR DETAILS: {traceback.format_exc()}")    
 
     def _show_about_window(self):
             """Displays a simple 'About' dialog with version and credit info."""
-            about_message = (f"NAND Fix Pro v{self.version}\n\n"
-                            "A tool for repairing and rebuilding Nintendo Switch eMMC NAND.\n\n"
-                            "Developed and maintained by: sthetix")
-            CustomDialog(self, title="About NAND Fix Pro", message=about_message)    
+            about_message = (f"NAND Fix Pro 中文版 v{self.version}\n\n"
+                            "用于修复和重建任天堂Switch eMMC NAND的工具。\n\n"
+                            "由sthetix开发和维护\n\n"
+                            "中文翻译 南宫镜")
+            CustomDialog(self, title="关于 NAND Fix Pro 中文版", message=about_message)    
 
     def _show_usage_guide_window(self):
         """Creates a new window and displays the contents of usage.txt."""
@@ -1483,14 +1494,14 @@ class SwitchGuiApp(tk.Tk):
                 with open(guide_path, 'r', encoding='utf-8') as f:
                     guide_content = f.read()
             else:
-                guide_content = "Error: Could not find the usage guide file.\n\n" \
-                                f"Please ensure 'usage.txt' exists in the following location:\n{guide_path}"
+                guide_content = "错误: 找不到使用指南文件。\n\n" \
+                                f"请确保'usage.txt'存在于以下位置:\n{guide_path}"
         except Exception as e:
-            guide_content = f"An unexpected error occurred while trying to load the usage guide:\n\n{e}"
+            guide_content = f"尝试加载使用指南时发生意外错误:\n\n{e}"
 
         # Create the Toplevel window
         help_win = tk.Toplevel(self)
-        help_win.title("Usage Guide")
+        help_win.title("使用指南")
         help_win.geometry("700x600")
         help_win.configure(bg=self.BG_COLOR)
         
@@ -1526,9 +1537,9 @@ class SwitchGuiApp(tk.Tk):
             
             # Open save dialog - use initialfile instead of initialvalue
             file_path = filedialog.asksaveasfilename(
-                title="Save Log File",
+                title="保存日志文件",
                 defaultextension=".txt",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                filetypes=[("文本文件", "*.txt"), ("所有文件", "*.*")],
                 initialfile=default_filename
             )
             
@@ -1538,7 +1549,7 @@ class SwitchGuiApp(tk.Tk):
                 
                 # Write to file
                 with open(file_path, 'w', encoding='utf-8') as f:
-                    f.write(f"NAND Fix Pro v{self.version} - Log Export\n")
+                    f.write(f"NAND Fix Pro v{self.version} 中文版 - 日志导出\n")
                     f.write(f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                     f.write("="*50 + "\n\n")
                     f.write(log_content)
@@ -1561,12 +1572,12 @@ class SwitchGuiApp(tk.Tk):
 
 
     def _reset_application_state(self):
-        """Resets the application to its initial state for a new run."""
-        dialog = CustomDialog(self, title="Confirm Reset",
-                            message="Are you sure you want to reset the application?\n\nThis will clear the log, reset the entire workflow state, and delete all temporary files.",
+        """将应用程序重置为初始状态以便新的运行。"""
+        dialog = CustomDialog(self, title="确认重置",
+                            message="您确定要重置应用程序吗？\n\n这将清除日志，重置整个工作流程状态，并删除所有临时文件。",
                             buttons="yesno")
         if not dialog.result:
-            self._log("--- Reset cancelled by user.")
+            self._log("--- 用户取消了重置。")
             return
 
         # 1. Delete temporary files/folders created by NANDFixPro
@@ -1644,7 +1655,7 @@ class SwitchGuiApp(tk.Tk):
 
         # 8. Clear the log and update the UI
         self._clear_log()
-        self._log("--- Application has been reset. Ready for a new operation. ---")
+        self._log("--- 应用程序已重置。准备进行新的操作。 ---")
         self._validate_paths_and_update_buttons()               
 
     def _auto_detect_paths(self):
@@ -1677,7 +1688,7 @@ class SwitchGuiApp(tk.Tk):
         )
         path_label.grid(row=row, column=1, sticky="ew", padx=5, pady=6)
         
-        browse_button = ttk.Button(parent, text="Browse...", command=lambda k=key, t=type: self._select_path(k, t), style="TButton")
+        browse_button = ttk.Button(parent, text="浏览...", command=lambda k=key, t=type: self._select_path(k, t), style="TButton")
         browse_button.grid(row=row, column=2, padx=5, pady=6)
         
         # NEW: Store reference to PRODINFO browse button
@@ -1721,14 +1732,14 @@ class SwitchGuiApp(tk.Tk):
         return button_area_frame       
 
     def _setup_level1_tab(self, parent_frame):
-        info_text = ("Fixes a corrupt SYSTEM partition directly on your Switch's eMMC.\n\n"
-                     "• Use this for software errors, failed updates, or boot issues where only the OS is affected.\n"
-                     "• The process reads your Switch's own PRODINFO and SYSTEM partition to perform the fix.\n"
-                     "• This method preserves user data like saves and installed games.")
+        info_text = ("直接修复Switch eMMC上损坏的SYSTEM分区。\n\n"
+                     "• 适用于软件错误、更新失败或仅操作系统受影响的启动问题。\n"
+                     "• 此过程会读取Switch自身的PRODINFO和SYSTEM分区来执行修复。\n"
+                     "• 此方法保留用户数据，如存档和已安装的游戏。")
         paths = [
-            ("firmware", "Firmware Folder:", "folder"),
+            ("firmware", "固件文件夹:", "folder"),
         ]
-        self._setup_tab_content(parent_frame, "Level 1: Description", info_text, paths)
+        self._setup_tab_content(parent_frame, "第1级: 说明", info_text, paths)
 
         # Row 2: Add a spacer to push the buttons to the bottom of the available area.
         spacer = ttk.Frame(parent_frame)
@@ -1743,7 +1754,7 @@ class SwitchGuiApp(tk.Tk):
         # Add console type override checkbox
         override_checkbox = ttk.Checkbutton(
             advanced_frame_placeholder,
-            text="Override Console Type Detection",
+            text="Switch型号检测",
             variable=self.override_console_type,
             command=self._on_override_toggle,
             style="Dark.TCheckbutton"
@@ -1757,14 +1768,14 @@ class SwitchGuiApp(tk.Tk):
         self._update_button_colors()
 
     def _setup_level2_tab(self, parent_frame):
-        info_text = ("Rebuilds the NAND using clean donor partitions from the 'lib/NAND' folder.\n\n"
-                     "• Use this when multiple partitions are corrupt, but PRODINFO is still readable.\n"
-                     "• The process reads your Switch's PRODINFO, then flashes clean partitions over the existing ones.\n"
-                     "• This process WILL ERASE all user data.")
+        info_text = ("使用'lib/NAND'文件夹中的干净分区重建NAND。\n\n"
+                     "• 当多个分区损坏但PRODINFO仍然可读时使用此选项。\n"
+                     "• 此过程会读取Switch的PRODINFO，然后将干净的分区刷写到现有分区上。\n"
+                     "• 此过程将擦除所有用户数据。")
         paths = [
-            ("firmware", "Firmware Folder:", "folder"),
+            ("firmware", "固件文件夹:", "folder"),
         ]
-        self._setup_tab_content(parent_frame, "Level 2: Description", info_text, paths)
+        self._setup_tab_content(parent_frame, "第2级: 说明", info_text, paths)
 
         # Row 2: Add a spacer.
         spacer = ttk.Frame(parent_frame)
@@ -1774,7 +1785,7 @@ class SwitchGuiApp(tk.Tk):
         # Row 3: The frame containing the actual Advanced Button.
         advanced_frame = ttk.Frame(parent_frame)
         advanced_frame.grid(row=3, column=0, columnspan=3, pady=20)
-        advanced_button = ttk.Button(advanced_frame, text="Advanced: Fix USER Only",
+        advanced_button = ttk.Button(advanced_frame, text="高级: 仅修复USER分区",
                                      command=self._start_user_fix_threaded, style="Disabled.TButton", state="disabled")
         advanced_button.pack(ipady=5, ipadx=15)
         self.advanced_user_button = advanced_button
@@ -1782,7 +1793,7 @@ class SwitchGuiApp(tk.Tk):
         # Add console type override checkbox below the advanced button
         override_checkbox = ttk.Checkbutton(
             advanced_frame,
-            text="Override Console Type Detection",
+            text="Switch型号检测",
             variable=self.override_console_type,
             command=self._on_override_toggle,
             style="Dark.TCheckbutton"
@@ -1796,15 +1807,15 @@ class SwitchGuiApp(tk.Tk):
         self._update_button_colors()
 
     def _setup_level3_tab(self, parent_frame):
-        info_text = ("For total NAND loss, including PRODINFO. This is a last resort.\n\n"
-                     "• Reconstructs a complete NAND image from a donor PRODINFO file and clean templates.\n"
-                     "• The script automatically detects eMMC size (32/64GB) for the correct NAND skeleton.\n"
-                     "• Connect your Switch in 'eMMC RAW GPP' mode (Read-Only OFF) and click Start.")
+        info_text = ("适用于包括PRODINFO在内的NAND完全损坏情况。这是最后手段。\n\n"
+                     "• 使用PRODINFO文件和干净的模板重建完整的NAND镜像。\n"
+                     "• 脚本会自动检测eMMC大小（32/64GB）以使用正确的NAND骨架。\n"
+                     "• 将您的Switch连接到'eMMC RAW GPP'模式(关闭只读)并点击开始。")
         paths = [
-            ("firmware", "Firmware Folder:", "folder"),
-            ("prodinfo", "Donor PRODINFO:", "file"),
+            ("firmware", "固件文件夹:", "folder"),
+            ("prodinfo", "PRODINFO:", "file"),
         ]
-        self._setup_tab_content(parent_frame, "Level 3: Description", info_text, paths)
+        self._setup_tab_content(parent_frame, "第3级: 说明", info_text, paths)
 
         # Row 2: Add a spacer.
         spacer = ttk.Frame(parent_frame)
@@ -1831,7 +1842,7 @@ class SwitchGuiApp(tk.Tk):
 
     def _run_user_fix_process(self):
         """Performs a targeted fix of the USER partition only."""
-        self._log("\n--- Starting Advanced: Fix USER Partition Only ---")
+        self._log("\n--- 开始高级操作: 仅修复USER分区 ---")
         temp_dir_obj = None  # To hold the TemporaryDirectory object if created
         try:
             pythoncom.CoInitialize()
@@ -2620,7 +2631,10 @@ class SwitchGuiApp(tk.Tk):
         # ADD THESE 3 LINES HERE:
         self.button_states["copy_boot"] = "active"
         self.button_states["level3"] = "completed"
+        self._log(f"DEBUG: Setting copy_boot state to active after Level 3 completion")
         self._update_button_colors()
+        # 强制更新界面以确保更改生效
+        self.update_idletasks()
         
         CustomDialog(self, title="Level 3 Complete", 
                         message="Level 3 recovery completed successfully!\n\n" +
@@ -2732,8 +2746,8 @@ class SwitchGuiApp(tk.Tk):
             activebackground=self.ACCENT_COLOR, activeforeground=self.FG_COLOR,
             relief="flat", borderwidth=0
         )
-        menubar.add_cascade(label="PRODINFO Editor", menu=prodinfo_menu, state="disabled")
-        prodinfo_menu.add_command(label="Edit PRODINFO File", command=self._open_prodinfo_editor)
+        menubar.add_cascade(label="PRODINFO编辑器", menu=prodinfo_menu, state="disabled")
+        prodinfo_menu.add_command(label="编辑PRODINFO文件", command=self._open_prodinfo_editor)
         
         # Store reference for enabling/disabling
         self.prodinfo_menu_cascade = menubar
@@ -2743,8 +2757,8 @@ class SwitchGuiApp(tk.Tk):
         """Open PRODINFO editor dialog"""
         prodinfo_path = self.paths["prodinfo"].get()
         if not prodinfo_path or not Path(prodinfo_path).exists():
-            CustomDialog(self, title="No PRODINFO", 
-                        message="Please load a PRODINFO file first by using 'Get Keys from SD' or selecting one manually in Settings.")
+            CustomDialog(self, title="无PRODINFO", 
+                        message="请先使用'从SD卡获取密钥'或在设置中手动选择PRODINFO文件。")
             return
         
         try:
@@ -2756,7 +2770,7 @@ class SwitchGuiApp(tk.Tk):
             
         except Exception as e:
             self._log(f"ERROR: Failed to open PRODINFO editor: {e}")
-            CustomDialog(self, title="Editor Error", message=f"Failed to open PRODINFO editor:\n{e}")
+            CustomDialog(self, title="编辑器错误", message=f"无法打开PRODINFO编辑器:\n{e}")
 
     def _enable_prodinfo_menu(self):
         """Enable PRODINFO menu after successful PRODINFO load"""
@@ -2780,37 +2794,56 @@ class SwitchGuiApp(tk.Tk):
             activebackground=self.ACCENT_COLOR, activeforeground=self.FG_COLOR,
             relief="flat", borderwidth=0
         )
-        menubar.add_cascade(label="Settings", menu=settings_menu)
+        menubar.add_cascade(label="设置", menu=settings_menu)
         paths_to_show = {"7z": "7-Zip (7z.exe)...", "emmchaccgen": "EmmcHaccGen.exe...",
                             "nxnandmanager": "NxNandManager.exe...", "osfmount": "OSFMount.com...",
-                            "partitions_folder": "Partitions Folder (NAND)...",
-                            "temp_directory": "Temporary Directory..."}
+                            "partitions_folder": "分区文件夹 (NAND)...",
+                            "temp_directory": "临时目录..."}
         for key, text in paths_to_show.items():
             file_type = "file" if ".exe" in text or ".com" in text else "folder"
-            settings_menu.add_command(label=f"Set {text}", command=lambda k=key, t=file_type: self._select_path(k, t))
+            settings_menu.add_command(label=f"设置 {text}", command=lambda k=key, t=file_type: self._select_path(k, t))
 
     def _select_path(self, key, type):
         path = ""
         if type == "file":
             # Define specific file type filters for different selections
             file_filters = {
-                "7z": [("7-Zip Executable", "7z.exe"), ("Executable", "*.exe"), ("All files", "*.*")],
-                "osfmount": [("OSFMount Command", "OSFMount.com"), ("Command File", "*.com"), ("All files", "*.*")],
-                "nxnandmanager": [("NxNandManager Executable", "NxNandManager.exe"), ("Executable", "*.exe"), ("All files", "*.*")],
-                "emmchaccgen": [("EmmcHaccGen Files", "*.exe *.ini"), ("Executable", "*.exe"), ("INI File", "*.ini"), ("All files", "*.*")],
-                "keys": [("Keys File", "*.keys"), ("All files", "*.*")],
-                "prodinfo": [("PRODINFO File", "*.*")]
+                "7z": [("7-Zip可执行文件", "7z.exe"), ("可执行文件", "*.exe"), ("所有文件", "*.*")],
+                "osfmount": [("OSFMount命令", "OSFMount.com"), ("命令文件", "*.com"), ("所有文件", "*.*")],
+                "nxnandmanager": [("NxNandManager可执行文件", "NxNandManager.exe"), ("可执行文件", "*.exe"), ("所有文件", "*.*")],
+                "emmchaccgen": [("EmmcHaccGen文件", "*.exe *.ini"), ("可执行文件", "*.exe"), ("INI文件", "*.ini"), ("所有文件", "*.*")],
+                "keys": [("密钥文件", "*.keys"), ("所有文件", "*.*")],
+                "prodinfo": [("PRODINFO文件", "*.*")]
             }
             # Get the filter for the current selection key
             current_filter = file_filters.get(key)
             
+            # 映射key到中文名
+            key_names = {
+                "7z": "7-Zip",
+                "osfmount": "OSFMount",
+                "nxnandmanager": "NxNandManager",
+                "emmchaccgen": "EmmcHaccGen",
+                "keys": "密钥",
+                "prodinfo": "PRODINFO"
+            }
+            display_name = key_names.get(key, key.replace('_', ' ').title())
+            
             path = filedialog.askopenfilename(
-                title=f"Select {key.replace('_', ' ').title()} File",
+                title=f"选择{display_name}文件",
                 filetypes=current_filter
             )
 
         elif type == "folder":
-            path = filedialog.askdirectory(title=f"Select {key.replace('_', ' ').title()} Folder")
+            # 映射key到中文名
+            key_names = {
+                "firmware": "固件",
+                "partitions_folder": "分区",
+                "temp_directory": "临时",
+                "output_folder": "输出"
+            }
+            display_name = key_names.get(key, key.replace('_', ' ').title())
+            path = filedialog.askdirectory(title=f"选择{display_name}文件夹")
         
         if path: 
             self.paths[key].set(os.path.normpath(path))
@@ -3111,7 +3144,10 @@ class SwitchGuiApp(tk.Tk):
         # Update button states AFTER user presses OK on dialog
         self.button_states["level1"] = "completed"
         self.button_states["copy_boot"] = "active"
+        self._log(f"DEBUG: Setting copy_boot state to active after Level 1 completion")
         self._update_button_colors()
+        # 强制更新界面以确保更改生效
+        self.update_idletasks()
 
     def _run_and_interrupt_flash(self, command, partition_name, target_mb):
         self._log(f"--- Starting partial flash for {partition_name} with a {target_mb}MB target...")
@@ -3314,7 +3350,10 @@ class SwitchGuiApp(tk.Tk):
         # Update button states AFTER user presses OK on dialog
         self.button_states["level2"] = "completed"
         self.button_states["copy_boot"] = "active"
+        self._log(f"DEBUG: Setting copy_boot state to active after Level 2 completion")
         self._update_button_colors()
+        # 强制更新界面以确保更改生效
+        self.update_idletasks()
 
 def is_admin():
     try: return ctypes.windll.shell32.IsUserAnAdmin()
